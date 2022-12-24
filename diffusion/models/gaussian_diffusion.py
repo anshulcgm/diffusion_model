@@ -1,4 +1,5 @@
 import pdb
+from typing import Optional
 
 import torch
 import torch.nn as nn
@@ -25,12 +26,13 @@ class GaussianDiffusion(nn.Module):
         self.alphas = 1.0 - self.betas
         self.cumulative_alphas = torch.cumprod(self.alphas, axis=0)
 
-    def add_noise(self, batch: torch.Tensor, timesteps: torch.Tensor) -> torch.Tensor:
+    def add_noise(self, batch: torch.Tensor, timesteps: torch.Tensor, random_noise: Optional[torch.Tensor] = None) -> torch.Tensor:
         """Adds gaussian noise to each image in the batch depending on the timestep
 
         Args:
             batch: Tensor of shape (b, c, h, w) representing images
             timesteps: Tensor of shape (b,) representing which timestep each batch is in
+            noise: Tensor of shape (b, 1, 1, 1) representing random noise for each batch
 
         Returns:
             noised_batch: Tensor of shape (b, c, h, w) representing noise added to batch
@@ -38,6 +40,7 @@ class GaussianDiffusion(nn.Module):
         b, _, _, _ = batch.shape
         curr_alphas = self.cumulative_alphas[timesteps].unsqueeze(1).unsqueeze(2).unsqueeze(3)
         curr_variances = 1.0 - curr_alphas
-        random_noise = torch.randn(size=[b, 1, 1, 1])
+        if random_noise is None:
+            random_noise = torch.randn(size=[b, 1, 1, 1])
         noised_batch = torch.sqrt(curr_alphas) * batch + torch.sqrt(curr_variances) * random_noise
         return noised_batch
