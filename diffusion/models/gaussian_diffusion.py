@@ -34,8 +34,8 @@ class GaussianDiffusion(nn.Module):
             noised_batch: Tensor of shape (b, c, h, w) representing noise added to batch
         """
         b, _, _, _ = batch.shape
-        curr_alphas = self.alphas[timesteps].unsqueeze(1).unsqueeze(2).unsqueeze(3)
-        curr_betas = self.betas[timesteps].unsqueeze(1).unsqueeze(2).unsqueeze(3)
+        curr_alphas = self.cumulative_alphas[timesteps].unsqueeze(1).unsqueeze(2).unsqueeze(3)
+        curr_variances = 1. - curr_alphas
         random_noise = torch.randn(size = [b, 1, 1, 1])
-        noised_batch = torch.sqrt(curr_alphas) * batch + torch.sqrt(curr_betas) * random_noise
+        noised_batch = torch.sqrt(curr_alphas) * batch + torch.sqrt(curr_variances) * random_noise
         return noised_batch

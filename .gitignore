@@ -1,2 +1,3 @@
 diffusion.egg-info/
 .pytest_cache/
+diffusion/models/__pycache__/
