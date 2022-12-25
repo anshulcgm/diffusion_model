@@ -102,3 +102,20 @@ class GaussianDiffusion(nn.Module):
         posterior_mean_second_coefficient = torch.sqrt(curr_alphas) * (1. - previous_timestep_cumulative_alphas) / (1. - cumulative_alphas)
         posterior_mean = posterior_mean_first_coefficient * starting_images + posterior_mean_second_coefficient * curr_images
         return posterior_mean
+    
+    def calculate_posterior_variance(self, timesteps: torch.Tensor) -> torch.Tensor:
+        """Calculates variance of posterior distribution used to sample x_{t - 1}
+
+        Args:
+            timesteps: Tensor of shape (b,) representing which timestep each element in the batch is at
+        
+        Returns:
+            posterior_variances: Tensor of shape (b,) representing a variance for each batch
+            clipped_log_posterior_variance: Tensor of shape (b,) representing log of variances for numerical stability
+        """
+        previous_timestep_cumulative_alphas = self.cumulative_alphas[timesteps - 1]
+        cumulative_alphas = self.cumulative_alphas[timesteps]
+        curr_betas = self.betas[timesteps]
+        posterior_variance = (1. - previous_timestep_cumulative_alphas) / (1. - cumulative_alphas) * curr_betas
+        clipped_log_posterior_variance = torch.log(torch.clamp(posterior_variance, min = 1e-20))
+        return posterior_variance, clipped_log_posterior_variance
