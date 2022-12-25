@@ -40,11 +40,11 @@ class GaussianDiffusion(nn.Module):
             noised_batch: Tensor of shape (b, c, h, w) representing noise added to batch
         """
         b, _, _, _ = batch.shape
-        curr_alphas = self.cumulative_alphas[timesteps].unsqueeze(1).unsqueeze(2).unsqueeze(3)
-        curr_variances = 1.0 - curr_alphas
+        curr_cumulative_alphas = self.cumulative_alphas[timesteps].unsqueeze(1).unsqueeze(2).unsqueeze(3)
+        curr_cumulative_variances = 1.0 - curr_cumulative_alphas
         if random_noise is None:
             random_noise = torch.randn(size=[b])
-        noised_batch = torch.sqrt(curr_alphas) * batch + torch.sqrt(curr_variances) * random_noise.unsqueeze(
+        noised_batch = torch.sqrt(curr_cumulative_alphas) * batch + torch.sqrt(curr_cumulative_variances) * random_noise.unsqueeze(
             1
         ).unsqueeze(2).unsqueeze(3)
         return noised_batch
@@ -62,9 +62,22 @@ class GaussianDiffusion(nn.Module):
         Returns:
             starting_images: Images before any gaussian noise was added
         """
-        curr_alphas = self.cumulative_alphas[curr_timesteps].unsqueeze(1).unsqueeze(2).unsqueeze(3)
-        curr_variances = 1.0 - curr_alphas
-        starting_images = 1.0 / torch.sqrt(curr_alphas) * curr_images - torch.sqrt(
-            curr_variances / curr_alphas
+        curr_cumulative_alphas = self.cumulative_alphas[curr_timesteps].unsqueeze(1).unsqueeze(2).unsqueeze(3)
+        curr_cumulative_variances = 1.0 - curr_cumulative_alphas
+        starting_images = 1.0 / torch.sqrt(curr_cumulative_alphas) * curr_images - torch.sqrt(
+            curr_cumulative_variances / curr_cumulative_alphas
         ) * noise.unsqueeze(1).unsqueeze(2).unsqueeze(3)
         return starting_images
+    
+    def calculate_posterior_mean(self, curr_images: torch.Tensor, curr_timesteps: torch.Tensor, noise: torch.Tensor) -> torch.Tensor:
+        """Calculates x_0 from x_t
+
+        Args:
+            curr_images: Tensor of shape (b, c, h, w) representing noised images
+            curr_timesteps: Tensor of shape (b,) representing which timestep each element in the batch is at
+            noise: Tensor of shape (b,) indicating noise predictions by decoder network for each batch
+
+        Returns:
+            posterior_mean: Tensor of shape (b, c, h, w) representing mean of distribution used to sample x_{t - 1}
+        """
+        starting_images = self.calculate_starting_image(curr_images, curr_timesteps, noise)
