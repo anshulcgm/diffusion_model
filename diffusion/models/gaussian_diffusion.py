@@ -25,6 +25,21 @@ class GaussianDiffusion(nn.Module):
 
         self.alphas = 1.0 - self.betas
         self.cumulative_alphas = torch.cumprod(self.alphas, axis=0)
+    
+    def unsqueeze_multiple_dimensions(self, start_tensor: torch.Tensor, num_dimensions_to_unsqueeze: int = 3) -> torch.Tensor:
+        """Helper method to unsqueeze 1D tensors into n-dimensional tensors 
+
+        Args:
+            start_tensor: 1D tensor of shape (n,)
+            num_dimensions_unsqueeze: how many dimensions to add
+        
+        Returns:
+            unsqueezed_tensor: tensor of shape (n, 1, 1, .....)
+        """
+        unsqueezed_tensor = start_tensor
+        for i in range(num_dimensions_to_unsqueeze):
+            unsqueezed_tensor = unsqueezed_tensor.unsqueeze(i + 1)
+        return unsqueezed_tensor
 
     def add_noise(
         self, batch: torch.Tensor, timesteps: torch.Tensor, random_noise: Optional[torch.Tensor] = None
@@ -40,13 +55,11 @@ class GaussianDiffusion(nn.Module):
             noised_batch: Tensor of shape (b, c, h, w) representing noise added to batch
         """
         b, _, _, _ = batch.shape
-        curr_cumulative_alphas = self.cumulative_alphas[timesteps].unsqueeze(1).unsqueeze(2).unsqueeze(3)
+        curr_cumulative_alphas = self.unsqueeze_multiple_dimensions(self.cumulative_alphas[timesteps])
         curr_cumulative_variances = 1.0 - curr_cumulative_alphas
         if random_noise is None:
             random_noise = torch.randn(size=[b])
-        noised_batch = torch.sqrt(curr_cumulative_alphas) * batch + torch.sqrt(curr_cumulative_variances) * random_noise.unsqueeze(
-            1
-        ).unsqueeze(2).unsqueeze(3)
+        noised_batch = torch.sqrt(curr_cumulative_alphas) * batch + torch.sqrt(curr_cumulative_variances) * self.unsqueeze_multiple_dimensions(random_noise)
         return noised_batch
 
     def calculate_starting_image(
@@ -62,15 +75,15 @@ class GaussianDiffusion(nn.Module):
         Returns:
             starting_images: Images before any gaussian noise was added
         """
-        curr_cumulative_alphas = self.cumulative_alphas[curr_timesteps].unsqueeze(1).unsqueeze(2).unsqueeze(3)
+        curr_cumulative_alphas = self.unsqueeze_multiple_dimensions(self.cumulative_alphas[curr_timesteps])
         curr_cumulative_variances = 1.0 - curr_cumulative_alphas
         starting_images = 1.0 / torch.sqrt(curr_cumulative_alphas) * curr_images - torch.sqrt(
             curr_cumulative_variances / curr_cumulative_alphas
-        ) * noise.unsqueeze(1).unsqueeze(2).unsqueeze(3)
+        ) * self.unsqueeze_multiple_dimensions(noise)
         return starting_images
-    
+
     def calculate_posterior_mean(self, curr_images: torch.Tensor, curr_timesteps: torch.Tensor, noise: torch.Tensor) -> torch.Tensor:
-        """Calculates x_0 from x_t
+        """Calculates posterior mean for distribution that is used to sample x_{t - 1}
 
         Args:
             curr_images: Tensor of shape (b, c, h, w) representing noised images
@@ -81,3 +94,11 @@ class GaussianDiffusion(nn.Module):
             posterior_mean: Tensor of shape (b, c, h, w) representing mean of distribution used to sample x_{t - 1}
         """
         starting_images = self.calculate_starting_image(curr_images, curr_timesteps, noise)
+        previous_timestep_cumulative_alphas = self.unsqueeze_multiple_dimensions(self.cumulative_alphas[curr_timesteps - 1])
+        cumulative_alphas = self.unsqueeze_multiple_dimensions(self.cumulative_alphas[curr_timesteps])
+        curr_alphas = self.unsqueeze_multiple_dimensions(self.alphas[curr_timesteps])
+        curr_betas = self.unsqueeze_multiple_dimensions(self.betas[curr_timesteps])
+        posterior_mean_first_coefficient = torch.sqrt(previous_timestep_cumulative_alphas) * curr_betas / (1. - cumulative_alphas)
+        posterior_mean_second_coefficient = torch.sqrt(curr_alphas) * (1. - previous_timestep_cumulative_alphas) / (1. - cumulative_alphas)
+        posterior_mean = posterior_mean_first_coefficient * starting_images + posterior_mean_second_coefficient * curr_images
+        return posterior_mean
