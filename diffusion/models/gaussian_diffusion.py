@@ -2,10 +2,8 @@ import pdb
 from typing import Optional
 
 import torch
-import torch.nn as nn
 
-
-class GaussianDiffusion(nn.Module):
+class GaussianDiffusion:
     def __init__(
         self, n_timesteps: int, variance_lower_bound: float = 0.001, variance_upper_bound: float = 0.002
     ) -> None:
@@ -14,7 +12,6 @@ class GaussianDiffusion(nn.Module):
         Args:
             n_timesteps: Number of timesteps in forward corruption process
         """
-
         self.n_timesteps = n_timesteps
         self.variance_lower_bound = variance_lower_bound
         self.variance_upper_bound = variance_upper_bound
