@@ -26,14 +26,14 @@ def test_add_noise_shape():
 
 def test_add_noise_specific_values():
     img_tensor = torch.randn(size=[4, 3, 2, 2])
-    random_noise = torch.randn(size=[4])
+    random_noise = torch.randn_like(img_tensor)
     noised_batch = torch.zeros_like(img_tensor)
     model = GaussianDiffusion(n_timesteps=20)
     timesteps = torch.Tensor([4, 3, 10, 9]).to(torch.int64)
     for i in range(img_tensor.shape[0]):
         curr_img = img_tensor[i]
         curr_timestep = timesteps[i]
-        curr_noise = random_noise[i].item()
+        curr_noise = random_noise[i]
         alpha_value = model.cumulative_alphas[curr_timestep]
         variance = 1.0 - alpha_value
         noisy_img = torch.sqrt(alpha_value) * curr_img + torch.sqrt(variance) * curr_noise
@@ -45,17 +45,17 @@ def test_add_noise_specific_values():
 def test_calculate_starting_image():
     num_timesteps = random.randint(10, 30)
     img_tensor = torch.randn(size=[4, 3, 2, 2])
-    random_noise = torch.randn(size=[4])
+    random_noise = torch.randn_like(img_tensor)
     timesteps = torch.randint(low=1, high=num_timesteps, size=[4])
     model = GaussianDiffusion(n_timesteps=num_timesteps)
     noised_batch = model.add_noise(img_tensor, timesteps, random_noise)
     calculated_start_images = model.calculate_starting_image(noised_batch, timesteps, random_noise)
-    assert torch.all(torch.isclose(img_tensor, calculated_start_images))
+    assert torch.all(torch.isclose(img_tensor, calculated_start_images, rtol=1e-3))
 
 def test_calculate_posterior_mean():
     num_timesteps = random.randint(10, 30)
     noised_img_tensor = torch.randn(size=[4, 3, 2, 2])
-    random_noise = torch.randn(size=[4])
+    random_noise = torch.randn_like(noised_img_tensor)
     timesteps = torch.randint(low=1, high=num_timesteps, size=[4])
     model = GaussianDiffusion(n_timesteps=num_timesteps)
     posterior_mean = model.calculate_posterior_mean(noised_img_tensor, timesteps, random_noise)
