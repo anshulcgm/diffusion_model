@@ -1,3 +1,6 @@
 diffusion.egg-info/
 .pytest_cache/
 diffusion/models/__pycache__/
+archive/
+archive.zip/
+.DS_Store
