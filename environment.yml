@@ -1,189 +1,112 @@
-name: base
+name: diffusion
 channels:
+  - pytorch
   - defaults
   - conda-forge
 dependencies:
-  - blas=1.0=openblas
-  - brotlipy=0.7.0=py39h1a28f6b_1002
+  - aom=3.5.0=h7ea286d_0
+  - brotlipy=0.7.0=py38h1a28f6b_1002
+  - bzip2=1.0.8=h620ffc9_4
   - ca-certificates=2022.10.11=hca03da5_0
-  - certifi=2022.9.24=py39hca03da5_0
-  - cffi=1.15.1=py39h22df2f2_0
+  - certifi=2022.12.7=py38hca03da5_0
+  - cffi=1.15.1=py38h80987f9_3
   - charset-normalizer=2.0.4=pyhd3eb1b0_0
-  - conda=22.9.0=py39hca03da5_0
-  - conda-package-handling=1.8.1=py39h1a28f6b_0
-  - cryptography=37.0.1=py39h834c97f_0
-  - future=0.18.2=py39hca03da5_1
-  - idna=3.3=pyhd3eb1b0_0
+  - cpuonly=2.0=0
+  - cryptography=38.0.1=py38h834c97f_0
+  - expat=2.4.9=hc377ac9_0
+  - ffmpeg=4.4.2=gpl_hc92e51b_109
+  - flit-core=3.6.0=pyhd3eb1b0_0
+  - font-ttf-dejavu-sans-mono=2.37=hd3eb1b0_0
+  - font-ttf-inconsolata=2.001=hcb22688_0
+  - font-ttf-source-code-pro=2.030=hd3eb1b0_0
+  - font-ttf-ubuntu=0.83=h8b1ccd4_0
+  - fontconfig=2.14.1=h6b8db82_1
+  - fonts-anaconda=1=h8fa9717_0
+  - fonts-conda-ecosystem=1=hd3eb1b0_0
+  - freetype=2.12.1=h1192e45_0
+  - future=0.18.2=py38hca03da5_1
+  - gettext=0.21.0=h826f4ad_0
+  - giflib=5.2.1=h1a28f6b_0
+  - gmp=6.2.1=hc377ac9_3
+  - gnutls=3.7.8=h9f1a10d_0
+  - icu=68.1=hc377ac9_0
+  - idna=3.4=py38hca03da5_0
+  - jpeg=9e=h1a28f6b_0
+  - lame=3.100=h1a28f6b_0
+  - lcms2=2.12=hba8e193_0
+  - lerc=3.0=hc377ac9_0
   - libblas=3.9.0=16_osxarm64_openblas
   - libcblas=3.9.0=16_osxarm64_openblas
-  - libcxx=12.0.0=hf6beb65_1
-  - libffi=3.4.2=hc377ac9_4
+  - libcxx=14.0.6=h848a8c0_0
+  - libdeflate=1.8=h1a28f6b_5
+  - libffi=3.4.2=hca03da5_6
   - libgfortran=5.0.0=11_3_0_hca03da5_28
   - libgfortran5=11.3.0=h009349e_28
+  - libiconv=1.17=he4db4b2_0
+  - libidn2=2.3.1=h1a28f6b_0
   - liblapack=3.9.0=16_osxarm64_openblas
   - libopenblas=0.3.21=h269037a_0
-  - libprotobuf=3.16.0=hccf11d3_0
+  - libpng=1.6.37=hb8d0fd4_0
+  - libprotobuf=3.20.1=h98b2900_0
+  - libsqlite=3.40.0=h76d750c_0
+  - libtasn1=4.19.0=h1a8c8d9_0
+  - libtiff=4.4.0=h2fd578a_2
+  - libunistring=0.9.10=h1a28f6b_0
+  - libvpx=1.11.0=hc377ac9_0
+  - libwebp=1.2.4=h68602c7_0
+  - libwebp-base=1.2.4=h1a28f6b_0
+  - libxml2=2.9.14=h8c5e841_0
+  - libzlib=1.2.13=h03a7124_4
   - llvm-openmp=14.0.6=hc6e5704_0
+  - lz4-c=1.9.4=h313beb8_0
   - ncurses=6.3=h1a28f6b_3
+  - nettle=3.8.1=h63371fa_1
   - ninja=1.10.2=hca03da5_5
   - ninja-base=1.10.2=h525c30c_5
-  - numpy-base=1.23.3=py39hadd41eb_1
+  - openh264=2.3.1=hb7217d7_1
   - openssl=1.1.1s=h1a28f6b_0
-  - pip=22.1.2=py39hca03da5_0
-  - pycosat=0.6.3=py39h1a28f6b_0
+  - p11-kit=0.24.1=h29577a5_0
+  - pillow=9.3.0=py38hf4a492f_1
+  - pip=22.3.1=py38hca03da5_0
   - pycparser=2.21=pyhd3eb1b0_0
   - pyopenssl=22.0.0=pyhd3eb1b0_0
-  - pysocks=1.7.1=py39hca03da5_0
-  - python=3.9.12=hbdb9e5c_0
-  - python.app=3=py39h1a28f6b_0
-  - python_abi=3.9=2_cp39
-  - readline=8.1.2=h1a28f6b_1
-  - requests=2.28.1=py39hca03da5_0
-  - ruamel_yaml=0.15.100=py39h1a28f6b_0
-  - setuptools=61.2.0=py39hca03da5_0
+  - pysocks=1.7.1=py38hca03da5_0
+  - python=3.8.15=hf452327_0_cpython
+  - python_abi=3.8=2_cp38
+  - pytorch=1.11.0=cpu_py38h17550ec_2
+  - pytorch-mutex=1.0=cpu
+  - pyyaml=6.0=py38h80987f9_1
+  - readline=8.2=h1a28f6b_0
+  - requests=2.28.1=py38hca03da5_0
   - sleef=3.5.1=hf27765b_1
-  - sqlite=3.39.2=h1058600_0
+  - sqlite=3.40.0=h7a7dc30_0
+  - svt-av1=1.3.0=h7ea286d_0
   - tk=8.6.12=hb8d0fd4_0
-  - toolz=0.11.2=pyhd3eb1b0_0
-  - tqdm=4.64.0=py39hca03da5_0
-  - typing_extensions=4.3.0=py39hca03da5_0
-  - tzdata=2022a=hda174b7_0
-  - urllib3=1.26.11=py39hca03da5_0
+  - torchvision=0.12.0=cpu_py38h13a9dc5_1
+  - typing-extensions=4.4.0=py38hca03da5_0
+  - typing_extensions=4.4.0=py38hca03da5_0
+  - urllib3=1.26.13=py38hca03da5_0
   - wheel=0.37.1=pyhd3eb1b0_0
-  - xz=5.2.5=h1a28f6b_1
+  - x264=1!164.3095=h57fd34a_2
+  - x265=3.5=hbc6ce65_3
+  - xz=5.2.8=h80987f9_0
   - yaml=0.2.5=h1a28f6b_0
-  - zlib=1.2.12=h5a0b063_2
+  - zlib=1.2.13=h03a7124_4
+  - zstd=1.5.2=h8574219_0
   - pip:
-    - anyio==3.6.2
-    - appnope==0.1.3
-    - argon2-cffi==21.3.0
-    - argon2-cffi-bindings==21.2.0
-    - asttokens==2.0.8
-    - attrs==22.1.0
-    - backcall==0.2.0
-    - beautifulsoup4==4.11.1
-    - black==22.10.0
-    - bleach==5.0.1
-    - blis==0.7.9
-    - catalogue==2.0.8
+    - attrs==22.2.0
+    - black==22.12.0
     - click==8.1.3
-    - cloudpickle==2.2.0
-    - confection==0.0.3
-    - contourpy==1.0.6
-    - cycler==0.11.0
-    - cymem==2.0.7
-    - debugpy==1.6.3
-    - decorator==5.1.1
-    - defusedxml==0.7.1
-    - distlib==0.3.6
-    - entrypoints==0.4
-    - executing==1.1.1
-    - fastjsonschema==2.16.2
-    - filelock==3.8.0
-    - fonttools==4.38.0
-    - gym==0.26.2
-    - gym-notices==0.0.8
-    - gymnasium==0.26.3
-    - gymnasium-notices==0.0.1
-    - igraph==0.10.2
-    - importlib-metadata==5.0.0
-    - ipykernel==6.16.2
-    - ipython==8.5.0
-    - ipython-genutils==0.2.0
-    - ipywidgets==8.0.2
-    - jedi==0.18.1
-    - jinja2==3.1.2
-    - joblib==1.2.0
-    - jsonschema==4.16.0
-    - jupyter==1.0.0
-    - jupyter-client==7.4.4
-    - jupyter-console==6.4.4
-    - jupyter-core==4.11.2
-    - jupyter-server==1.21.0
-    - jupyterlab-pygments==0.2.2
-    - jupyterlab-widgets==3.0.3
-    - kiwisolver==1.4.4
-    - lab==7.2
-    - langcodes==3.3.0
-    - markupsafe==2.1.1
-    - matplotlib==3.6.1
-    - matplotlib-inline==0.1.6
-    - mistune==2.0.4
-    - murmurhash==1.0.9
+    - exceptiongroup==1.1.0
+    - iniconfig==1.1.1
     - mypy-extensions==0.4.3
-    - nbclassic==0.4.7
-    - nbclient==0.7.0
-    - nbconvert==7.2.3
-    - nbformat==5.7.0
-    - nest-asyncio==1.5.6
-    - networkx==2.8.7
-    - notebook==6.5.2
-    - notebook-shim==0.2.0
-    - numpy==1.23.4
-    - packaging==21.3
-    - pandas==1.4.3
-    - pandocfilters==1.5.0
-    - parso==0.8.3
-    - pathspec==0.10.1
-    - pathy==0.6.2
-    - patsy==0.5.2
-    - pettingzoo==1.22.0
-    - pexpect==4.8.0
-    - pickleshare==0.7.5
-    - pillow==9.3.0
-    - platformdirs==2.5.3
-    - preshed==3.0.8
-    - prometheus-client==0.15.0
-    - prompt-toolkit==3.0.31
-    - psutil==5.9.3
-    - ptyprocess==0.7.0
-    - pure-eval==0.2.2
-    - pydantic==1.9.2
-    - pygame==2.1.2
-    - pygments==2.13.0
-    - pymunk==6.2.1
-    - pyparsing==3.0.9
-    - pyrsistent==0.19.1
-    - python-dateutil==2.8.2
-    - python-graphviz==0.17
-    - pytz==2022.2.1
-    - pyzmq==24.0.1
-    - qtconsole==5.3.2
-    - qtpy==2.2.1
-    - scikit-learn==1.1.3
-    - scipy==1.9.0
-    - send2trash==1.8.0
-    - simplejson==3.17.6
-    - six==1.16.0
-    - sklearn==0.0
-    - smart-open==5.2.1
-    - sniffio==1.3.0
-    - soupsieve==2.3.2.post1
-    - spacy==3.4.1
-    - spacy-legacy==3.0.10
-    - spacy-loggers==1.0.3
-    - srsly==2.4.5
-    - stack-data==0.5.1
-    - statsmodels==0.13.2
-    - supersuit==3.6.0
-    - terminado==0.17.0
-    - texttable==1.6.4
-    - thinc==8.1.5
-    - threadpoolctl==3.1.0
-    - tinycss2==1.2.1
-    - tinyscaler==1.2.4
+    - numpy==1.24.0
+    - packaging==22.0
+    - pathspec==0.10.3
+    - platformdirs==2.6.0
+    - pluggy==1.0.0
+    - pytest==7.2.0
+    - scipy==1.9.3
+    - setuptools==65.6.3
     - tomli==2.0.1
-    - torch==1.12.1
-    - torchtext==0.13.1
-    - tornado==6.2
-    - traitlets==5.5.0
-    - txt2tags==3.7
-    - typer==0.4.2
-    - virtualenv==20.16.6
-    - wasabi==0.10.1
-    - wcwidth==0.2.5
-    - webencodings==0.5.1
-    - websocket-client==1.4.1
-    - widgetsnbextension==4.0.3
-    - zipp==3.10.0
-prefix: /Users/anshulahluwalia/miniconda3
+prefix: /Users/anshulahluwalia/miniconda3/envs/diffusion
