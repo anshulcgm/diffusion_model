@@ -3,6 +3,7 @@ from typing import Optional
 
 import torch
 
+
 class GaussianDiffusion:
     def __init__(
         self, n_timesteps: int, variance_lower_bound: float = 0.001, variance_upper_bound: float = 0.002
@@ -22,14 +23,16 @@ class GaussianDiffusion:
 
         self.alphas = 1.0 - self.betas
         self.cumulative_alphas = torch.cumprod(self.alphas, axis=0)
-    
-    def unsqueeze_multiple_dimensions(self, start_tensor: torch.Tensor, num_dimensions_to_unsqueeze: int = 3) -> torch.Tensor:
-        """Helper method to unsqueeze 1D tensors into n-dimensional tensors 
+
+    def unsqueeze_multiple_dimensions(
+        self, start_tensor: torch.Tensor, num_dimensions_to_unsqueeze: int = 3
+    ) -> torch.Tensor:
+        """Helper method to unsqueeze 1D tensors into n-dimensional tensors
 
         Args:
             start_tensor: 1D tensor of shape (n,)
             num_dimensions_unsqueeze: how many dimensions to add
-        
+
         Returns:
             unsqueezed_tensor: tensor of shape (n, 1, 1, .....)
         """
@@ -74,12 +77,15 @@ class GaussianDiffusion:
         """
         curr_cumulative_alphas = self.unsqueeze_multiple_dimensions(self.cumulative_alphas[curr_timesteps])
         curr_cumulative_variances = 1.0 - curr_cumulative_alphas
-        starting_images = 1.0 / torch.sqrt(curr_cumulative_alphas) * curr_images - torch.sqrt(
-            curr_cumulative_variances / curr_cumulative_alphas
-        ) * noise
+        starting_images = (
+            1.0 / torch.sqrt(curr_cumulative_alphas) * curr_images
+            - torch.sqrt(curr_cumulative_variances / curr_cumulative_alphas) * noise
+        )
         return starting_images
 
-    def calculate_posterior_mean(self, curr_images: torch.Tensor, curr_timesteps: torch.Tensor, noise: torch.Tensor) -> torch.Tensor:
+    def calculate_posterior_mean(
+        self, curr_images: torch.Tensor, curr_timesteps: torch.Tensor, noise: torch.Tensor
+    ) -> torch.Tensor:
         """Calculates posterior mean for distribution that is used to sample x_{t - 1}
 
         Args:
@@ -91,21 +97,29 @@ class GaussianDiffusion:
             posterior_mean: Tensor of shape (b, c, h, w) representing mean of distribution used to sample x_{t - 1}
         """
         starting_images = self.calculate_starting_image(curr_images, curr_timesteps, noise)
-        previous_timestep_cumulative_alphas = self.unsqueeze_multiple_dimensions(self.cumulative_alphas[curr_timesteps - 1])
+        previous_timestep_cumulative_alphas = self.unsqueeze_multiple_dimensions(
+            self.cumulative_alphas[curr_timesteps - 1]
+        )
         cumulative_alphas = self.unsqueeze_multiple_dimensions(self.cumulative_alphas[curr_timesteps])
         curr_alphas = self.unsqueeze_multiple_dimensions(self.alphas[curr_timesteps])
         curr_betas = self.unsqueeze_multiple_dimensions(self.betas[curr_timesteps])
-        posterior_mean_first_coefficient = torch.sqrt(previous_timestep_cumulative_alphas) * curr_betas / (1. - cumulative_alphas)
-        posterior_mean_second_coefficient = torch.sqrt(curr_alphas) * (1. - previous_timestep_cumulative_alphas) / (1. - cumulative_alphas)
-        posterior_mean = posterior_mean_first_coefficient * starting_images + posterior_mean_second_coefficient * curr_images
+        posterior_mean_first_coefficient = (
+            torch.sqrt(previous_timestep_cumulative_alphas) * curr_betas / (1.0 - cumulative_alphas)
+        )
+        posterior_mean_second_coefficient = (
+            torch.sqrt(curr_alphas) * (1.0 - previous_timestep_cumulative_alphas) / (1.0 - cumulative_alphas)
+        )
+        posterior_mean = (
+            posterior_mean_first_coefficient * starting_images + posterior_mean_second_coefficient * curr_images
+        )
         return posterior_mean
-    
+
     def calculate_posterior_variance(self, timesteps: torch.Tensor) -> torch.Tensor:
         """Calculates variance of posterior distribution used to sample x_{t - 1}
 
         Args:
             timesteps: Tensor of shape (b,) representing which timestep each element in the batch is at
-        
+
         Returns:
             posterior_variances: Tensor of shape (b,) representing a variance for each batch
             clipped_log_posterior_variance: Tensor of shape (b,) representing log of variances for numerical stability
@@ -113,18 +127,20 @@ class GaussianDiffusion:
         previous_timestep_cumulative_alphas = self.cumulative_alphas[timesteps - 1]
         cumulative_alphas = self.cumulative_alphas[timesteps]
         curr_betas = self.betas[timesteps]
-        posterior_variance = (1. - previous_timestep_cumulative_alphas) / (1. - cumulative_alphas) * curr_betas
-        clipped_log_posterior_variance = torch.log(torch.clamp(posterior_variance, min = 1e-20))
+        posterior_variance = (1.0 - previous_timestep_cumulative_alphas) / (1.0 - cumulative_alphas) * curr_betas
+        clipped_log_posterior_variance = torch.log(torch.clamp(posterior_variance, min=1e-20))
         return posterior_variance, clipped_log_posterior_variance
 
-    def calculate_previous_timestep_images(self, curr_images: torch.Tensor, curr_timesteps: torch.Tensor, noise: torch.Tensor) -> torch.Tensor:
+    def calculate_previous_timestep_images(
+        self, curr_images: torch.Tensor, curr_timesteps: torch.Tensor, noise: torch.Tensor
+    ) -> torch.Tensor:
         """Calculates x_{t - 1} from x_{t}
 
         Args:
             curr_images: Tensor of shape (b,c,h,w) that represents noised images at current timesteps
             curr_timesteps: Tensor of shape (b,) that represents which timestep each element is at
             noise: Predicted noise from previous timestep
-        
+
         Returns:
             x_{t - 1}: Predicted images from previous timestep
         """
@@ -132,6 +148,8 @@ class GaussianDiffusion:
         _, log_variance = self.calculate_posterior_variance(curr_timesteps)
         backward_noise = torch.randn_like(curr_images)
         zero_timestep_mask = curr_timesteps == 0
-        previous_timestep_images = posterior_mean + self.unsqueeze_multiple_dimensions(torch.exp(0.5 * log_variance)) * backward_noise
+        previous_timestep_images = (
+            posterior_mean + self.unsqueeze_multiple_dimensions(torch.exp(0.5 * log_variance)) * backward_noise
+        )
         previous_timestep_images[zero_timestep_mask] = curr_images[zero_timestep_mask]
         return previous_timestep_images

@@ -52,6 +52,7 @@ def test_calculate_starting_image():
     calculated_start_images = model.calculate_starting_image(noised_batch, timesteps, random_noise)
     assert torch.all(torch.isclose(img_tensor, calculated_start_images, rtol=1e-3))
 
+
 def test_calculate_posterior_mean():
     num_timesteps = random.randint(10, 30)
     noised_img_tensor = torch.randn(size=[4, 3, 2, 2])
@@ -61,22 +62,24 @@ def test_calculate_posterior_mean():
     posterior_mean = model.calculate_posterior_mean(noised_img_tensor, timesteps, random_noise)
     assert posterior_mean.shape == noised_img_tensor.shape
 
+
 def test_calculate_posterior_variance():
     num_timesteps = random.randint(10, 30)
-    timesteps = torch.randint(low = 1, high = num_timesteps, size = [4])
-    model = GaussianDiffusion(n_timesteps = num_timesteps)
+    timesteps = torch.randint(low=1, high=num_timesteps, size=[4])
+    model = GaussianDiffusion(n_timesteps=num_timesteps)
     posterior_variance, clipped_log_posterior_variance = model.calculate_posterior_variance(timesteps)
     assert posterior_variance.shape == timesteps.shape
     assert clipped_log_posterior_variance.shape == timesteps.shape
 
+
 def test_calculate_previous_timestep_images():
     num_timesteps = random.randint(10, 30)
-    timesteps = torch.randint(low = 1, high = num_timesteps, size = [4])
+    timesteps = torch.randint(low=1, high=num_timesteps, size=[4])
     random_zero_idx = random.randint(0, 4)
     timesteps[random_zero_idx] = 0
-    model = GaussianDiffusion(n_timesteps = num_timesteps)
-    noised_img_tensor = torch.randn(size = [4, 3, 224, 224])
+    model = GaussianDiffusion(n_timesteps=num_timesteps)
+    noised_img_tensor = torch.randn(size=[4, 3, 224, 224])
     random_noise = torch.randn_like(noised_img_tensor)
     previous_timestep_images = model.calculate_previous_timestep_images(noised_img_tensor, timesteps, random_noise)
     assert previous_timestep_images.shape == noised_img_tensor.shape
-    #assert torch.all(torch.isclose(noised_img_tensor[random_zero_idx], previous_timestep_images[random_zero_idx]))
+    # assert torch.all(torch.isclose(noised_img_tensor[random_zero_idx], previous_timestep_images[random_zero_idx]))
