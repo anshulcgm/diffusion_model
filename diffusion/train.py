@@ -36,6 +36,8 @@ def calculate_loss(
     """
     noise = torch.randn_like(x_start)
     noised_images = diffusion_model.add_noise(batch=x_start, timesteps=timesteps, random_noise=noise)
+    noised_images = noised_images.to(device)
+    timesteps = timesteps.to(device)
     pred_noise = denoising_model(batch=noised_images, timesteps=timesteps)
     loss = criterion(pred_noise, noise.to(device))
     return loss
@@ -53,7 +55,7 @@ def train() -> None:
         total_loss = 0.0
         for j, (images, _) in enumerate(training_dataloader):
             optimizer.zero_grad()
-            images = image.to(device)
+            images = images.to(device)
             timesteps = torch.randint(low = 1, high = NUM_TIMESTEPS, size = [BATCH_SIZE])
             loss = calculate_loss(diffusion_model, denoising_model, images, timesteps, criterion)
             loss.backward()
