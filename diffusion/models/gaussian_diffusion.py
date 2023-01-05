@@ -6,7 +6,7 @@ import torch
 
 class GaussianDiffusion:
     def __init__(
-        self, n_timesteps: int, variance_lower_bound: float = 0.001, variance_upper_bound: float = 0.002
+        self, n_timesteps: int, variance_lower_bound: float = 0.0001, variance_upper_bound: float = 0.02
     ) -> None:
         """Define variance schedule along with important constants for calculations
 

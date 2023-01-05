@@ -21,3 +21,11 @@ def sample_from_random_noise(diffusion_model: GaussianDiffusion, denoising_model
         timesteps -= 1
     
     return curr_images
+
+def main():
+    diffusion_model = GaussianDiffusion(n_timesteps = NUM_TIMESTEPS)
+    denoising_model = DenoisingModel(n_timesteps = NUM_TIMESTEPS, time_emb_dim = TIME_EMB_DIM)
+    samples_images = sample_from_random_noise(diffusion_model, denoising_model)
+
+if __name__ == "__main__":
+    main()
