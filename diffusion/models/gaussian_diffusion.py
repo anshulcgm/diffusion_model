@@ -97,6 +97,10 @@ class GaussianDiffusion:
             posterior_mean: Tensor of shape (b, c, h, w) representing mean of distribution used to sample x_{t - 1}
         """
         starting_images = self.calculate_starting_image(curr_images, curr_timesteps, noise)
+        quantiles = torch.quantile(starting_images.reshape(starting_images.shape[0], -1).abs(), q = 0.9, dim = -1)
+        quantiles.clamp_(min = 1.)
+        quantiles = self.unsqueeze_multiple_dimensions(quantiles)
+        starting_images = starting_images.clamp(-quantiles, quantiles) / quantiles
         previous_timestep_cumulative_alphas = self.unsqueeze_multiple_dimensions(
             self.cumulative_alphas[curr_timesteps - 1]
         )

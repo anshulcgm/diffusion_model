@@ -5,7 +5,7 @@ import torch
 from diffusion.models.gaussian_diffusion import GaussianDiffusion
 from diffusion.models.denoising_model import DenoisingModel
 
-NUM_TIMESTEPS = 20
+NUM_TIMESTEPS = 25
 TIME_EMB_DIM = 64
 
 BATCH_SIZE = 4
@@ -13,7 +13,7 @@ IMG_SIZE = 224
 
 def sample_from_random_noise(diffusion_model: GaussianDiffusion, denoising_model: DenoisingModel) -> torch.Tensor:
     random_noise = torch.randn(size = [BATCH_SIZE, 3, IMG_SIZE, IMG_SIZE])
-    timesteps = torch.ones(size = [BATCH_SIZE]) * NUM_TIMESTEPS - 1
+    timesteps = torch.ones(size = [BATCH_SIZE]).to(torch.int64) * NUM_TIMESTEPS - 1
     curr_images = random_noise
     for i in range(NUM_TIMESTEPS - 1, 0, -1):
         pred_noise = denoising_model(curr_images, timesteps)
@@ -23,9 +23,12 @@ def sample_from_random_noise(diffusion_model: GaussianDiffusion, denoising_model
     return curr_images
 
 def main():
+    pdb.set_trace()
     diffusion_model = GaussianDiffusion(n_timesteps = NUM_TIMESTEPS)
     denoising_model = DenoisingModel(n_timesteps = NUM_TIMESTEPS, time_emb_dim = TIME_EMB_DIM)
-    samples_images = sample_from_random_noise(diffusion_model, denoising_model)
+    sampled_images = sample_from_random_noise(diffusion_model, denoising_model)
+    sampled_images.clamp_(-1., 1.)
+    unnormalized_images = (sampled_images + 1) * 0.5
 
 if __name__ == "__main__":
     main()
