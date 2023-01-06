@@ -4,5 +4,4 @@ diffusion/models/__pycache__/
 archive/
 archive.zip/
 .DS_Store
-*.png
 *.pth
