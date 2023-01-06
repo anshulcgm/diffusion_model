@@ -5,3 +5,4 @@ archive/
 archive.zip/
 .DS_Store
 *.png
+*.pth
