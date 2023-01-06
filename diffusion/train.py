@@ -7,9 +7,9 @@ from diffusion.models.gaussian_diffusion import GaussianDiffusion
 from diffusion.models.denoising_model import DenoisingModel
 from diffusion.data_utils import prep_data
 
-NUM_TIMESTEPS = 20
+NUM_TIMESTEPS = 30
 TIME_EMB_DIM = 64
-NUM_EPOCHS = 100
+NUM_EPOCHS = 20
 
 TRAINING_DIR = "archive/car_data/car_data/train"
 BATCH_SIZE = 16
