@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, List
 import pdb
 
 import torch
@@ -72,34 +72,60 @@ class EncoderDecoder(nn.Module):
 
 
 class Segnet(nn.Module):
-    def __init__(self, in_channels: int = 3, out_channels: int = 3) -> None:
+    def __init__(
+        self,
+        in_channels: int = 3,
+        out_channels: int = 3,
+        channels_list: List[int] = [64, 128, 256, 512, 512],
+        num_extra_layers: List[int] = [1, 1, 2, 2, 2],
+    ) -> None:
         """Initializes necessary layers for segnet forward pass
 
         Args:
             in_channels: How many channels will the input image have
             out_channels: How many channels we want the output image to have
+            channels_list: A list representing how many channels the image is at each layer
+            num_extra_layers: How many channel preserving convolutions + batch norms to add for each layer
         """
         super(Segnet, self).__init__()
+
+        assert len(channels_list) == len(num_extra_layers)
         self.in_channels = in_channels
         self.out_channels = out_channels
 
-        # Initialize encoder layers
         self.max_pool = nn.MaxPool2d(kernel_size=2, stride=2, return_indices=True)
-        self.encoder1 = self.initialize_encoder_layer(in_channels=in_channels, out_channels=64, num_extra_layers=1)
-        self.encoder2 = self.initialize_encoder_layer(in_channels=64, out_channels=128, num_extra_layers=1)
-        self.encoder3 = self.initialize_encoder_layer(in_channels=128, out_channels=256, num_extra_layers=2)
-        self.encoder4 = self.initialize_encoder_layer(in_channels=256, out_channels=512, num_extra_layers=2)
-        self.encoder5 = self.initialize_encoder_layer(in_channels=512, out_channels=512, num_extra_layers=2)
-        self.encoder = ModuleList([self.encoder1, self.encoder2, self.encoder3, self.encoder4, self.encoder5])
+        encoder_layers = []
+        input_channels = in_channels
+        num_layers = len(channels_list)
+        for i in range(num_layers):
+            curr_encoder_layer = self.initialize_encoder_layer(
+                in_channels=input_channels, out_channels=channels_list[i], num_extra_layers=num_extra_layers[i]
+            )
+            input_channels = channels_list[i]
+            encoder_layers.append(curr_encoder_layer)
+
+        self.encoder = ModuleList(encoder_layers)
 
         # Initialize decoder layers
         self.max_unpool = nn.MaxUnpool2d(kernel_size=2, stride=2)
-        self.decoder1 = self.initialize_decoder_layer(in_channels=512, out_channels=512, num_extra_layers=2)
-        self.decoder2 = self.initialize_decoder_layer(in_channels=512, out_channels=256, num_extra_layers=2)
-        self.decoder3 = self.initialize_decoder_layer(in_channels=256, out_channels=128, num_extra_layers=2)
-        self.decoder4 = self.initialize_decoder_layer(in_channels=128, out_channels=64, num_extra_layers=1)
-        self.decoder5 = self.initialize_decoder_layer(in_channels=64, out_channels=out_channels, num_extra_layers=1)
-        self.decoder = ModuleList([self.decoder1, self.decoder2, self.decoder3, self.decoder4, self.decoder5])
+        decoder_layers = []
+        decoder_channel_list = channels_list[::-1]
+        decoder_extra_layers = num_extra_layers[::-1]
+
+        for i in range(num_layers - 1):
+            curr_decoder_layer = self.initialize_decoder_layer(
+                in_channels=decoder_channel_list[i],
+                out_channels=decoder_channel_list[i + 1],
+                num_extra_layers=decoder_extra_layers[i],
+            )
+            decoder_layers.append(curr_decoder_layer)
+
+        last_decoder_layer = self.initialize_decoder_layer(
+            in_channels=decoder_channel_list[-1], out_channels=out_channels, num_extra_layers=decoder_extra_layers[-1]
+        )
+        decoder_layers.append(last_decoder_layer)
+
+        self.decoder = ModuleList(decoder_layers)
 
     def initialize_encoder_layer(self, in_channels: int, out_channels: int, num_extra_layers: int = 1) -> ModuleList:
         """Initializes an encoder segnet layer
@@ -144,8 +170,14 @@ class Segnet(nn.Module):
         return ModuleList(module_list)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Passes x through segnet network"""
-        x_sizes = []
+        """Passes x through segnet network
+        
+        Args:
+            x: Input tensor of shape (b, input_channels, h, w)
+        
+        Returns:
+            x: Output tensor of shape (b, output_channels, h, w)
+        """
         max_pooling_indices = []
 
         for encoder_layer in self.encoder:
@@ -154,17 +186,15 @@ class Segnet(nn.Module):
             x = F.relu(bn1(conv1(x)))
             num_remaining_layers = len(encoder_layer) - 2
             for j in range(0, num_remaining_layers, 2):
-                conv_layer = encoder_layer[j]
-                bn = encoder_layer[j + 1]
+                conv_layer = encoder_layer[j + 2]
+                bn = encoder_layer[j + 3]
                 x = F.relu(bn(conv_layer(x)))
             x, curr_pooling_indices = self.max_pool(input=x)
-            x_sizes.append(x.size())
             max_pooling_indices.append(curr_pooling_indices)
 
         max_pooling_indices = max_pooling_indices[::-1]
-        x_sizes = x_sizes[::-1]
         for i, decoder_layer in enumerate(self.decoder):
-            x = self.max_unpool(input=x, indices=max_pooling_indices[i], output_size=x_sizes[i])
+            x = self.max_unpool(input=x, indices=max_pooling_indices[i])
             num_extra_layers = len(decoder_layer) - 2
             for j in range(0, num_extra_layers, 2):
                 conv_layer = decoder_layer[j]
@@ -180,6 +210,6 @@ class Segnet(nn.Module):
 
 if __name__ == "__main__":
     pdb.set_trace()
-    segnet = Segnet(in_channels=3, out_channels=3)
+    segnet = Segnet(in_channels=3, out_channels=3, channels_list=[64, 128, 256, 512], num_extra_layers=[1, 1, 2, 2])
     x = torch.randn(size=[4, 3, 224, 224])
-    segnet(x)
+    output = segnet(x)

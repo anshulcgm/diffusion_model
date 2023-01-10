@@ -3,7 +3,7 @@ import pdb
 
 import torch
 
-from diffusion.models.denoising_model import EncoderDecoder
+from diffusion.models.denoising_model import EncoderDecoder, Segnet
 
 random.seed(42)
 torch.manual_seed(42)
@@ -33,3 +33,9 @@ def test_forward():
     timesteps = torch.randint(low=0, high=num_timesteps, size=[4])
     pred_noise = denoising_model(batch, timesteps)
     assert pred_noise.shape == batch.shape
+
+def test_segnet_without_timesteps():
+    segnet = Segnet(in_channels=3, out_channels=3, channels_list=[64, 128, 256, 512], num_extra_layers=[1, 1, 1, 2])
+    x = torch.randn(size = [4, 3, 224, 224])
+    out = segnet(x)
+    assert out.shape == x.shape
