@@ -7,7 +7,7 @@ import torchvision.transforms as T
 from PIL import Image
 
 from diffusion.models.gaussian_diffusion import GaussianDiffusion
-from diffusion.models.denoising_model import DenoisingModel
+from diffusion.models.denoising_model import EncoderDecoder
 
 NUM_TIMESTEPS = 30
 TIME_EMB_DIM = 64
@@ -17,7 +17,7 @@ IMG_SIZE = 224
 
 SAVED_MODEL_PATH = "trained_denoising_model.pth"
 
-def sample_from_random_noise(diffusion_model: GaussianDiffusion, denoising_model: DenoisingModel) -> torch.Tensor:
+def sample_from_random_noise(diffusion_model: GaussianDiffusion, denoising_model: EncoderDecoder) -> torch.Tensor:
     """Samples x_0 from x_T
 
     Args:
@@ -53,7 +53,7 @@ def save_images(images: torch.Tensor) -> None:
 def main():
     pdb.set_trace()
     diffusion_model = GaussianDiffusion(n_timesteps = NUM_TIMESTEPS)
-    denoising_model = DenoisingModel(n_timesteps = NUM_TIMESTEPS, time_emb_dim = TIME_EMB_DIM)
+    denoising_model = EncoderDecoder(n_timesteps = NUM_TIMESTEPS, time_emb_dim = TIME_EMB_DIM)
     if os.path.exists(SAVED_MODEL_PATH):
         denoising_model.load_state_dict(torch.load(SAVED_MODEL_PATH).module.state_dict())
     sampled_images = sample_from_random_noise(diffusion_model, denoising_model)

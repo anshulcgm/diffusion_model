@@ -3,7 +3,7 @@ import pdb
 
 import torch
 
-from diffusion.models.denoising_model import DenoisingModel
+from diffusion.models.denoising_model import EncoderDecoder
 
 random.seed(42)
 torch.manual_seed(42)
@@ -11,12 +11,12 @@ torch.manual_seed(42)
 
 def test_init():
     num_timesteps = random.randint(10, 30)
-    denoising_model = DenoisingModel(n_timesteps=num_timesteps, time_emb_dim=64)
+    denoising_model = EncoderDecoder(n_timesteps=num_timesteps, time_emb_dim=64)
 
 
 def test_forward_encoder():
     num_timesteps = random.randint(10, 30)
-    denoising_model = DenoisingModel(n_timesteps=num_timesteps, time_emb_dim=64)
+    denoising_model = EncoderDecoder(n_timesteps=num_timesteps, time_emb_dim=64)
     height = 8 * random.randint(1, 50)
     width = 8 * random.randint(1, 50)
     batch = torch.randn(size=[4, 3, height, width])
@@ -26,7 +26,7 @@ def test_forward_encoder():
 
 def test_forward():
     num_timesteps = random.randint(10, 30)
-    denoising_model = DenoisingModel(n_timesteps=num_timesteps, time_emb_dim=64)
+    denoising_model = EncoderDecoder(n_timesteps=num_timesteps, time_emb_dim=64)
     height = 8 * random.randint(1, 50)
     width = 8 * random.randint(1, 50)
     batch = torch.randn(size=[4, 3, height, width])

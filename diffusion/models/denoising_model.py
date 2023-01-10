@@ -6,7 +6,7 @@ import torch.nn as nn
 import torchvision.models as models
 
 
-class DenoisingModel(nn.Module):
+class EncoderDecoder(nn.Module):
     def __init__(self, n_timesteps: int, time_emb_dim: int) -> None:
         """Initializes necessary layers for embeddings and convolutions
 
@@ -15,7 +15,7 @@ class DenoisingModel(nn.Module):
             time_emb_dim: Embedding dimension for time tokens
             img_dim: Initial dimension of image tokens
         """
-        super(DenoisingModel, self).__init__()
+        super(EncoderDecoder, self).__init__()
 
         self.time_emb_dim = time_emb_dim
         self.time_embedder = nn.Embedding(n_timesteps, time_emb_dim)

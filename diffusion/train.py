@@ -4,7 +4,7 @@ import torch
 from torch.nn import MSELoss, DataParallel
 
 from diffusion.models.gaussian_diffusion import GaussianDiffusion
-from diffusion.models.denoising_model import DenoisingModel
+from diffusion.models.denoising_model import EncoderDecoder
 from diffusion.data_utils import prep_data
 
 NUM_TIMESTEPS = 30
@@ -18,7 +18,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 def calculate_loss(
     diffusion_model: GaussianDiffusion,
-    denoising_model: DenoisingModel,
+    denoising_model: EncoderDecoder,
     x_start: torch.Tensor,
     timesteps: torch.Tensor,
     criterion: torch.nn.Module,
@@ -43,7 +43,7 @@ def calculate_loss(
 def train() -> None:
     """Training Loop for denoising model"""
     diffusion_model = GaussianDiffusion(n_timesteps = NUM_TIMESTEPS)
-    denoising_model = DenoisingModel(n_timesteps = NUM_TIMESTEPS, time_emb_dim = TIME_EMB_DIM)
+    denoising_model = EncoderDecoder(n_timesteps = NUM_TIMESTEPS, time_emb_dim = TIME_EMB_DIM)
     denoising_model = DataParallel(denoising_model, device_ids = [0, 1, 2, 3])
     denoising_model.to(device)
     training_dataloader = prep_data(train_dir = TRAINING_DIR, batch_size = BATCH_SIZE)
