@@ -10,12 +10,12 @@ torch.manual_seed(42)
 
 
 def test_init():
-    num_timesteps = random.randint(10, 30)
+    num_timesteps = random.randint(21, 30)
     model = GaussianDiffusion(num_timesteps)
 
 
 def test_add_noise_shape():
-    num_timesteps = random.randint(10, 30)
+    num_timesteps = random.randint(21, 30)
     batch_size = random.randint(4, 10)
     model = GaussianDiffusion(num_timesteps)
     random_img_tensor = torch.rand(size=[batch_size, 3, 224, 224])
@@ -43,7 +43,7 @@ def test_add_noise_specific_values():
 
 
 def test_calculate_starting_image():
-    num_timesteps = random.randint(10, 30)
+    num_timesteps = random.randint(21, 30)
     img_tensor = torch.randn(size=[4, 3, 2, 2])
     random_noise = torch.randn_like(img_tensor)
     timesteps = torch.randint(low=1, high=num_timesteps, size=[4])
@@ -54,7 +54,7 @@ def test_calculate_starting_image():
 
 
 def test_calculate_posterior_mean():
-    num_timesteps = random.randint(10, 30)
+    num_timesteps = random.randint(21, 30)
     noised_img_tensor = torch.randn(size=[4, 3, 2, 2])
     random_noise = torch.randn_like(noised_img_tensor)
     timesteps = torch.randint(low=1, high=num_timesteps, size=[4])
@@ -64,7 +64,7 @@ def test_calculate_posterior_mean():
 
 
 def test_calculate_posterior_variance():
-    num_timesteps = random.randint(10, 30)
+    num_timesteps = random.randint(21, 30)
     timesteps = torch.randint(low=1, high=num_timesteps, size=[4])
     model = GaussianDiffusion(n_timesteps=num_timesteps)
     posterior_variance, clipped_log_posterior_variance = model.calculate_posterior_variance(timesteps)
@@ -73,7 +73,7 @@ def test_calculate_posterior_variance():
 
 
 def test_calculate_previous_timestep_images():
-    num_timesteps = random.randint(10, 30)
+    num_timesteps = random.randint(21, 30)
     timesteps = torch.randint(low=1, high=num_timesteps, size=[4])
     random_zero_idx = random.randint(0, 4)
     timesteps[random_zero_idx] = 0

@@ -1,4 +1,4 @@
-from typing import Tuple, List
+from typing import Tuple, List, Optional
 import pdb
 
 import torch
@@ -76,6 +76,8 @@ class Segnet(nn.Module):
         self,
         in_channels: int = 3,
         out_channels: int = 3,
+        num_timesteps: int = 30,
+        time_emb_dim: int = 64,
         channels_list: List[int] = [64, 128, 256, 512, 512],
         num_extra_layers: List[int] = [1, 1, 2, 2, 2],
     ) -> None:
@@ -84,6 +86,8 @@ class Segnet(nn.Module):
         Args:
             in_channels: How many channels will the input image have
             out_channels: How many channels we want the output image to have
+            num_timesteps: How many timesteps in the reverse diffusion process
+            time_emb_dim: embedding dimension of the timestep tensor
             channels_list: A list representing how many channels the image is at each layer
             num_extra_layers: How many channel preserving convolutions + batch norms to add for each layer
         """
@@ -92,9 +96,14 @@ class Segnet(nn.Module):
         assert len(channels_list) == len(num_extra_layers)
         self.in_channels = in_channels
         self.out_channels = out_channels
+        self.num_timesteps = num_timesteps
+        self.time_emb_dim = time_emb_dim
+
+        self.time_embedder = nn.Embedding(self.num_timesteps, self.time_emb_dim)
 
         self.max_pool = nn.MaxPool2d(kernel_size=2, stride=2, return_indices=True)
         encoder_layers = []
+        time_encoder_layers = []
         input_channels = in_channels
         num_layers = len(channels_list)
         for i in range(num_layers):
@@ -103,12 +112,15 @@ class Segnet(nn.Module):
             )
             input_channels = channels_list[i]
             encoder_layers.append(curr_encoder_layer)
+            time_encoder_layers.append(nn.Sequential(nn.SiLU(), nn.Linear(self.time_emb_dim, 2 * channels_list[i])))
 
         self.encoder = ModuleList(encoder_layers)
+        self.time_encoder = ModuleList(time_encoder_layers)
 
         # Initialize decoder layers
         self.max_unpool = nn.MaxUnpool2d(kernel_size=2, stride=2)
         decoder_layers = []
+        time_decoder_layers = []
         decoder_channel_list = channels_list[::-1]
         decoder_extra_layers = num_extra_layers[::-1]
 
@@ -119,13 +131,20 @@ class Segnet(nn.Module):
                 num_extra_layers=decoder_extra_layers[i],
             )
             decoder_layers.append(curr_decoder_layer)
+            time_decoder_layers.append(
+                nn.Sequential(nn.SiLU(), nn.Linear(self.time_emb_dim, 2 * decoder_channel_list[i + 1]))
+            )
 
         last_decoder_layer = self.initialize_decoder_layer(
             in_channels=decoder_channel_list[-1], out_channels=out_channels, num_extra_layers=decoder_extra_layers[-1]
         )
+        last_timestep_layer = nn.Sequential(nn.SiLU(), nn.Linear(self.time_emb_dim, 2 * out_channels))
+
         decoder_layers.append(last_decoder_layer)
+        time_decoder_layers.append(last_timestep_layer)
 
         self.decoder = ModuleList(decoder_layers)
+        self.time_decoder = ModuleList(time_decoder_layers)
 
     def initialize_encoder_layer(self, in_channels: int, out_channels: int, num_extra_layers: int = 1) -> ModuleList:
         """Initializes an encoder segnet layer
@@ -169,26 +188,36 @@ class Segnet(nn.Module):
 
         return ModuleList(module_list)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, timesteps: Optional[torch.Tensor] = None) -> torch.Tensor:
         """Passes x through segnet network
-        
+
         Args:
             x: Input tensor of shape (b, input_channels, h, w)
-        
+            timesteps: Tensor of shape (b,) representing timestep for each element in the batch
         Returns:
             x: Output tensor of shape (b, output_channels, h, w)
         """
         max_pooling_indices = []
 
-        for encoder_layer in self.encoder:
+        timestep_embeddings = None
+        if timesteps is not None:
+            timestep_embeddings = self.time_embedder(timesteps)
+
+        for i, encoder_layer in enumerate(self.encoder):
             conv1 = encoder_layer[0]
             bn1 = encoder_layer[1]
             x = F.relu(bn1(conv1(x)))
+            if timestep_embeddings is not None:
+                layer_timestep_mlp = self.time_encoder[i]
+                layer_timestep_encodings = layer_timestep_mlp(timestep_embeddings).unsqueeze(2).unsqueeze(3)
+                scale, shift = layer_timestep_encodings.chunk(2, dim=1)
+                x = x * (scale + 1) + shift
             num_remaining_layers = len(encoder_layer) - 2
             for j in range(0, num_remaining_layers, 2):
                 conv_layer = encoder_layer[j + 2]
                 bn = encoder_layer[j + 3]
                 x = F.relu(bn(conv_layer(x)))
+
             x, curr_pooling_indices = self.max_pool(input=x)
             max_pooling_indices.append(curr_pooling_indices)
 
@@ -204,12 +233,10 @@ class Segnet(nn.Module):
             downsizing_conv = decoder_layer[-2]
             downsizing_bn = decoder_layer[-1]
             x = F.relu(downsizing_bn(downsizing_conv(x)))
+            if timestep_embeddings is not None:
+                layer_timestep_mlp = self.time_decoder[i]
+                layer_timestep_encodings = layer_timestep_mlp(timestep_embeddings).unsqueeze(2).unsqueeze(3)
+                scale, shift = layer_timestep_encodings.chunk(2, dim=1)
+                x = x * (scale + 1) + shift
 
         return x
-
-
-if __name__ == "__main__":
-    pdb.set_trace()
-    segnet = Segnet(in_channels=3, out_channels=3, channels_list=[64, 128, 256, 512], num_extra_layers=[1, 1, 2, 2])
-    x = torch.randn(size=[4, 3, 224, 224])
-    output = segnet(x)
